@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: swb-int-ingress
+  namespace: int
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+    - host: int.swb
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: swb-service
+              servicePort: 8181

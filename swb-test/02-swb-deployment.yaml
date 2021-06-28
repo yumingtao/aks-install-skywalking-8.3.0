@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: swb
+  name: swb
+  namespace: int
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: swb
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: swb
+    spec:
+      containers:
+        - env:
+            - name: SKYWALKING_AGENT
+              value: -javaagent:/sidecar/skywalking-agent.jar -Dskywalking.trace.ignore_path=/**/actuator/**
+            - name: SW_AGENT_NAME
+              value: swb
+            - name: SW_AGENT_COLLECTOR_BACKEND_SERVICES
+              value: 'ip:11800' #此处IP为sw-oap-svc-grpc绑定的在Azure上创建的静态IP
+          image: 'cnappdev.azurecr.cn/mycar/sw-b:latest'
+          imagePullPolicy: Always
+          name: swb
+          ports:
+            - containerPort: 8181
+              name: http-port
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 1000Mi
+            requests:
+              cpu: 700m
+              memory: 700Mi
+          volumeMounts:
+            - mountPath: /sidecar
+              name: sidecar
+      imagePullSecrets:
+        - name: acr-secret
+      initContainers:
+        - command: ['sh']
+          args: ['-c','mkdir -p /sidecar && cp -r /usr/skywalking/agent/* /sidecar']
+          image: 'cnappdev.azurecr.cn/skywalking/skywalking-agent-es7-sidecar:8.3.0'
+          imagePullPolicy: Always
+          name: sidecar
+          volumeMounts:
+            - mountPath: /sidecar
+              name: sidecar
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - emptyDir: {}
+          name: sidecar

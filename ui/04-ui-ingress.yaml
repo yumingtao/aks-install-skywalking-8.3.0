@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: sw-ui-ingress
+  namespace: skywalking
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+    - host: ui.sw
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: sw-ui-svc
+              servicePort: 8080

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sw-ui-svc
+  namespace: skywalking
+  labels:
+    service: sw-ui-svc
+spec:
+  ports:
+    - port: 8080
+      name: page
+  type: ClusterIP
+  selector:
+    app: sw-ui

@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sw-oap
+  namespace: skywalking
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: sw-oap
+  template:
+    metadata:
+      labels:
+        app: sw-oap
+        release: skywalking
+    spec:
+      serviceAccountName: sw-oap-sa
+      containers:
+      - name: sw-oap
+        image: apache/skywalking-oap-server:8.3.0-es7
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 11800
+          name: grpc
+        - containerPort: 12800
+          name: rest
+        - containerPort: 1234
+          name: page
+        resources:
+          requests:
+            memory: 2Gi
+          limits:
+            memory: 3Gi
+        env:
+        - name: JAVA_OPTS
+          value: -Xms512M -Xmx1G
+        - name: TZ
+          value: Asia/Shanghai
+        - name: SW_STORAGE
+          value: elasticsearch7
+        - name: SW_STORAGE_ES_CLUSTER_NODES
+          value: "es-discovery:9200"
+        - name: SW_CLUSTER
+          value: kubernetes
+        - name: SW_CLUSTER_K8S_NAMESPACE
+          value: skywalking
+        - name: SW_SERVICE_MESH_OFFSET_MAX_FILE_SIZE
+          value: "200"
+        - name: SW_RECEIVER_BUFFER_DATA_MAX_FILE_SIZE
+          value: "800"
+        - name: SW_CLUSTER_K8S_LABEL
+          value: "app=sw-oap,release=skywalking"
+        - name: SW_RECEIVER_BUFFER_FILE_CLEAN_WHEN_RESTART
+          value: "true"
+        # NOTE: Execute the bulk every 4000 requests
+        - name: SW_STORAGE_ES_BULK_ACTIONS
+          value: "4000"
+        # NOTE: Flush the bulk every 40mb
+        - name: SW_STORAGE_ES_BULK_SIZE
+          value: "40"
+        # NOTE: Flush the bulk every 30 seconds whatever the number of the requests
+        - name: SW_STORAGE_ES_FLUSH_INTERVAL
+          value: "30"
+        # NOTE: The number of the concurrent requests
+        - name: SW_STORAGE_ES_CONCURRENT_REQUESTS
+          value: "4"
+        # NOTE: The max size of metadata per query
+        - name: SW_STORAGE_ES_QUERY_MAX_SIZE
+          value: "8000"
+        - name: SW_TELEMETRY
+          value: prometheus
+        - name: SKYWALKING_COLLECTOR_UID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.uid

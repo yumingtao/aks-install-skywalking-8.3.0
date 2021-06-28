@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sw-oap-svc-grpc
+  namespace: skywalking
+  labels:
+    service: sw-oap-svc-grpc
+spec:
+  ports:
+  - port: 11800
+    name: grpc
+  selector:
+    app: sw-oap
+  type: LoadBalancer
+  loadBalancerIP: [IP] #此处IP为在Azure上创建的静态IP

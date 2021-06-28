@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: swb-service
+  namespace: int
+  labels:
+    service: swb-service
+spec:
+  ports:
+    - port: 8181
+      targetPort: 8181
+  selector:
+    app: swb
